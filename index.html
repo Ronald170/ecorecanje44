@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECORECANJE | Pantalla LCD</title>
+  <style>
+    :root { --green:#7CFF6B; --bg:#06110e; --panel:#0c211a; --line:#24513e; --muted:#9bb8aa; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at top,#163c2b 0,#06110e 48%,#020706 100%); color:#e9fff0; font-family:Consolas,Monaco,"Courier New",monospace; display:grid; place-items:center; padding:20px; }
+    .shell { width:min(760px,100%); }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+    .brand { font:800 18px system-ui,sans-serif; letter-spacing:2px; }
+    .brand span { color:var(--green); }
+    .pill { border:1px solid var(--line); color:var(--muted); border-radius:999px; padding:7px 11px; font:12px system-ui,sans-serif; }
+    .lcd { background:#a7c98a; color:#11270c; border:12px solid #26372b; border-radius:18px; padding:clamp(18px,4vw,34px); box-shadow:0 0 0 2px #0a1710,0 22px 70px #0009,inset 0 0 22px #314a2633; position:relative; overflow:hidden; }
+    .lcd:after { content:""; pointer-events:none; position:absolute; inset:0; background:repeating-linear-gradient(0deg,#00000008 0px,#00000008 1px,transparent 1px,transparent 4px); }
+    .lcd-head { display:flex; justify-content:space-between; gap:10px; border-bottom:2px solid #34532a66; padding-bottom:12px; font-size:clamp(12px,2vw,16px); font-weight:bold; }
+    .status { color:#234b1c; }
+    .screen-grid { display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center; padding:22px 0; }
+    .label { font-size:clamp(12px,2vw,16px); opacity:.8; margin-bottom:8px; }
+    .material { font-size:clamp(24px,5vw,42px); font-weight:900; line-height:1.1; overflow-wrap:anywhere; }
+    .points { font-size:clamp(42px,10vw,78px); font-weight:900; letter-spacing:-4px; line-height:1; }
+    .unit { font-size:14px; font-weight:bold; letter-spacing:1px; }
+    .divider { border-top:2px solid #34532a66; padding-top:14px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:clamp(12px,2vw,15px); }
+    .big-total { font-weight:900; font-size:clamp(18px,4vw,28px); }
+    .controls { margin-top:16px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    button { border:1px solid #2d5b45; background:#10271d; color:#e9fff0; padding:13px 14px; border-radius:12px; cursor:pointer; font-weight:800; font-family:inherit; }
+    button:hover { background:#1a3b2a; border-color:var(--green); }
+    .note { color:var(--muted); font:13px/1.5 system-ui,sans-serif; margin-top:14px; }
+    .history { margin-top:18px; background:#091b14; border:1px solid var(--line); border-radius:14px; padding:16px; }
+    .history h2 { margin:0 0 10px; font:700 14px system-ui,sans-serif; color:var(--green); letter-spacing:1px; }
+    .event { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid #183729; font-size:13px; }
+    .event:last-child { border-bottom:0; }
+    .empty { color:var(--muted); font-size:13px; }
+    .led { display:inline-block; width:9px; height:9px; border-radius:50%; background:#7cff6b; box-shadow:0 0 10px #7cff6b; margin-right:7px; }
+    @media(max-width:480px) { .screen-grid { grid-template-columns:1fr; gap:16px; } .points { letter-spacing:-2px; } .controls { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div class="brand">♻ ECORE<span>CANJE</span></div>
+      <div class="pill"><span class="led"></span><span id="connection">CONECTANDO A FIREBASE…</span></div>
+    </header>
+
+    <section class="lcd" aria-label="Pantalla LCD de ECORECANJE">
+      <div class="lcd-head">
+        <span>ECORECANJE #01</span>
+        <span class="status" id="lcdStatus">INICIANDO...</span>
+      </div>
+      <div class="screen-grid">
+        <div>
+          <div class="label">ÚLTIMO MATERIAL</div>
+          <div class="material" id="material">ESPERANDO RECICLAJE</div>
+          <div style="margin-top:12px;font-size:13px" id="lastEvent">Inserta plástico o cartón</div>
+        </div>
+        <div>
+          <div class="label">PUNTOS GANADOS</div>
+          <div class="points" id="points">+0</div>
+          <div class="unit">PUNTOS</div>
+        </div>
+      </div>
+      <div class="divider">
+        <div>TOTAL ACUMULADO <span class="big-total" id="total">0</span> PTS</div>
+        <div>RECICLAJES <strong id="count">0</strong></div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button id="testPlastic">Vista previa: plástico +10</button>
+      <button id="testCardboard">Vista previa: cartón +15</button>
+    </div>
+
+    <section class="history">
+      <h2>ÚLTIMOS EVENTOS DE LA MÁQUINA</h2>
+      <div id="history" class="empty">Esperando eventos guardados en Firestore…</div>
+    </section>
+    <p class="note">La pantalla escucha la colección <b>reciclaje</b> de Firestore. Los botones de vista previa solo prueban la animación en este navegador; no escriben datos en Firebase ni suman puntos reales.</p>
+  </main>
+
+  <!-- Firebase compat SDK: debe cargar antes de firebase.js -->
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script src="lcd.js"></script>
+</body>
+</html>

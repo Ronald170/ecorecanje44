@@ -1,0 +1,21 @@
+ECORECANJE — MINI PANTALLA LCD WEB
+
+1. Crea una carpeta, por ejemplo: C:\Users\ronal\OneDrive\Aplicaciones\ecorecanje-lcd
+2. Dentro crea estos tres archivos:
+   - index.html
+   - firebase.js
+   - lcd.js
+3. Copia el contenido de cada archivo desde los archivos incluidos en este paquete.
+4. Abre la carpeta en VS Code y ejecuta index.html con Live Server (recomendado).
+5. Mantén encendido el proceso Python que recibe los eventos del Arduino y los guarda en Firestore.
+6. La web escucha la colección Firestore "reciclaje". Cada documento debe tener:
+   - evento: "PLASTICO" o "CARTON"
+   - suma: 10 o 15 (puntos ganados en ese evento)
+   - fecha: timestamp de Firestore
+
+IMPORTANTE:
+- Esta mini app solo muestra eventos y puntos; no reemplaza el servidor Python ni modifica el sketch Arduino.
+- Los botones "Vista previa" solo simulan la pantalla localmente; no guardan puntos reales.
+- El total se calcula sumando el campo "suma" de los documentos que lee. Si hay documentos de pruebas antiguos en "reciclaje", también se contarán.
+- La configuración web de Firebase no es la clave privada de Admin. Nunca publiques el archivo JSON de cuenta de servicio.
+- Las reglas de Firestore deben permitir lectura a la web para la colección "reciclaje". No habilites escritura pública.
